@@ -1,0 +1,179 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Breakout Clone Game</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        canvas {
+            background: rgb(0, 0, 0);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var cloneList = [];
+        var playing = "N"
+        var height = 480;
+        var width = 720;
+        var speed = 10;
+        var mouseX;
+        var ballStatus = {
+            x: 360,
+            y: 390,
+            dx: 3,
+            dy: -3
+        }
+        var barStatus = {
+            x: 360,
+            y: 400,
+            width:120,
+            height:15,
+            dx: 3,
+            dy: -3
+        }
+        $(document).ready(function () {
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+            for (var i = 0; i < 10; i++) { //建立磚塊
+                var tmp = {
+                    x: i % 5 * 100 + 120,
+                    y: Math.floor(i / 5) * 35 + 20,
+                    display: "Y"
+                }
+                cloneList.push(tmp);
+            }
+            prepareScene()
+            setInterval(function () {
+                if (playing == "Y") {
+                    frame(ctx)
+                }
+            }, speed);
+            $("div").mousemove(function (event) {
+                mouseX = event.clientX - ($(window).width()/2 - width/2);
+                if (mouseX < barStatus.width/2) {
+                    mouseX = barStatus.width/2;
+                } else if (mouseX > (width - barStatus.width + barStatus.width/2)) {
+                    mouseX = width - barStatus.width + barStatus.width/2;
+                }
+            })
+        })
+
+        function frame(ctx) { //一幀
+            ctx.clearRect(0, 0, width, height);
+            drawBall(ctx);
+            for (var i = 0; i < 10; i++) {
+                if (cloneList[i].display == "Y") {
+                    drawClone(ctx, cloneList[i])
+                }
+            }
+            moveBall();
+            moveBar();
+            drawBar(ctx);
+            if (ballStatus.y >= height - 10) {
+                gameOver()
+            }
+        }
+
+        function drawBar(ctx) {
+            ctx.beginPath();
+            ctx.rect(barStatus.x - barStatus.width/2, barStatus.y, barStatus.width, barStatus.height); //在寬,高 畫一個50*50
+            ctx.fillStyle = "#FFFFFF"; //strokeStyle 空心
+            ctx.fill(); //stroke() 空心
+            ctx.closePath();
+        }
+
+        function moveBar() {
+            barStatus.x = mouseX;
+        }
+
+        function drawBall(ctx) { //畫球
+            ctx.beginPath();
+            ctx.arc(ballStatus.x, ballStatus.y, 10, 0, Math.PI * 2, false); //位置,位置,半徑
+            ctx.fillStyle = "skyblue";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function prepareScene() { //起始標題畫面
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, width, height); //清空
+            ctx.font = 'bold 36px Verdana';
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Breakout Clone Game", 154, 235); //寫標題
+        }
+
+        function gameOver() { //起始標題畫面
+            playing = "N"
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, width, height); //清空
+            ctx.font = 'bold 36px Verdana';
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Game Over", 250, 235); //寫標題
+        }
+
+        function moveBall() { //算球的移動
+            if (ballStatus.x >= width - 10) {
+                ballStatus.dx = -ballStatus.dx;
+            } else if (ballStatus.x <= 10) {
+                ballStatus.dx = -ballStatus.dx;
+            }
+            if (ballStatus.y <= 10) {
+                ballStatus.dy = -ballStatus.dy;
+            } else if (ballStatus.y >= height - 10) {
+                //ballStatus.dy = -ballStatus.dy;
+            }
+            ballStatus.x = ballStatus.x + ballStatus.dx;
+            ballStatus.y = ballStatus.y + ballStatus.dy;
+        }
+
+        function drawClone(ctx, data) {
+            ctx.beginPath();
+            ctx.rect(data.x, data.y, 90, 20); //在寬,高 畫一個50*50
+            ctx.fillStyle = "#FFFFFF"; //strokeStyle 空心
+            ctx.fill(); //stroke() 空心
+            ctx.closePath();
+        }
+
+        function startOrStop() {
+            if (playing == "Y") {
+                playing = "N"
+            } else {
+                playing = "Y"
+            }
+        }
+
+        function restart() {
+            playing = "N";
+            prepareScene()
+            ballStatus = { //設定值回歸初始值
+                x: 360,
+                y: 390,
+                dx: 3,
+                dy: -3
+            }
+        }
+    </script>
+    <div style="text-align: center">
+        <br><br><br>
+        <label style="font-size: 36px;">Breakout Clone Game</label>
+        <canvas id="myCanvas" width="720" height="480"></canvas><br>
+        <button onclick="startOrStop()" class="btn btn-primary">Start/Stop</button><br><br>
+        <button onclick="restart()" class="btn btn-primary">Restart</button>
+    </div>
+</body>
+
+</html>
