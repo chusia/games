@@ -27,19 +27,22 @@
         var playing = "N"
         var height = 480;
         var width = 720;
-        var speed = 10;
+        var speed = 10; //螢幕更新率
+        var cloneWidth = 120;
+        var cloneHeight = 20;
+        var startCloneMoveHeight = 20
         var mouseX;
         var ballStatus = {
             x: 360,
-            y: 390,
+            y: 389,
             dx: 3,
             dy: -3
         }
         var barStatus = {
             x: 360,
             y: 400,
-            width:120,
-            height:15,
+            width: 120,
+            height: 15,
             dx: 3,
             dy: -3
         }
@@ -47,9 +50,12 @@
             let canvas = document.getElementById("myCanvas");
             let ctx = canvas.getContext("2d");
             for (var i = 0; i < 10; i++) { //建立磚塊
+                var hasama = 10; //磚塊間隔
                 var tmp = {
-                    x: i % 5 * 100 + 120,
-                    y: Math.floor(i / 5) * 35 + 20,
+                    x: (i % 5) * (cloneWidth + hasama) + (width - 5 * (cloneWidth + hasama) + hasama) / 2,
+                    y: Math.floor(i / 5) * (cloneHeight + 10) + startCloneMoveHeight,
+                    width: cloneWidth,
+                    height: cloneHeight,
                     display: "Y"
                 }
                 cloneList.push(tmp);
@@ -61,34 +67,36 @@
                 }
             }, speed);
             $("div").mousemove(function (event) {
-                mouseX = event.clientX - ($(window).width()/2 - width/2);
-                if (mouseX < barStatus.width/2) {
-                    mouseX = barStatus.width/2;
-                } else if (mouseX > (width - barStatus.width + barStatus.width/2)) {
-                    mouseX = width - barStatus.width + barStatus.width/2;
+                mouseX = event.clientX - ($(window).width() / 2 - width / 2);
+                if (mouseX < barStatus.width / 2) {
+                    mouseX = barStatus.width / 2;
+                } else if (mouseX > (width - barStatus.width + barStatus.width / 2)) {
+                    mouseX = width - barStatus.width + barStatus.width / 2;
                 }
             })
         })
 
         function frame(ctx) { //一幀
             ctx.clearRect(0, 0, width, height);
-            drawBall(ctx);
             for (var i = 0; i < 10; i++) {
                 if (cloneList[i].display == "Y") {
                     drawClone(ctx, cloneList[i])
                 }
             }
-            moveBall();
             moveBar();
+            moveBall();
+            drawBall(ctx);
             drawBar(ctx);
             if (ballStatus.y >= height - 10) {
-                gameOver()
+                gameOver();
+            } else if (cloneList.filter(word => word.display == "Y").length == 0) {
+                youWin();
             }
         }
 
-        function drawBar(ctx) {
+        function drawBar(ctx) { //移動反彈板
             ctx.beginPath();
-            ctx.rect(barStatus.x - barStatus.width/2, barStatus.y, barStatus.width, barStatus.height); //在寬,高 畫一個50*50
+            ctx.rect(barStatus.x - barStatus.width / 2, barStatus.y, barStatus.width, barStatus.height); //在寬,高 畫一個50*50
             ctx.fillStyle = "#FFFFFF"; //strokeStyle 空心
             ctx.fill(); //stroke() 空心
             ctx.closePath();
@@ -125,24 +133,43 @@
             ctx.fillText("Game Over", 250, 235); //寫標題
         }
 
+        function youWin() { //起始標題畫面
+            playing = "N"
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, width, height); //清空
+            ctx.font = 'bold 36px Verdana';
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("You Win!", 260, 235); //寫標題
+        }
+
         function moveBall() { //算球的移動
-            if (ballStatus.x >= width - 10) {
+            if (ballStatus.x >= width - 10) { //兩側牆壁
                 ballStatus.dx = -ballStatus.dx;
             } else if (ballStatus.x <= 10) {
                 ballStatus.dx = -ballStatus.dx;
             }
-            if (ballStatus.y <= 10) {
+            if (ballStatus.y <= 10) { //天花板
                 ballStatus.dy = -ballStatus.dy;
-            } else if (ballStatus.y >= height - 10) {
-                //ballStatus.dy = -ballStatus.dy;
+            } else if ((ballStatus.x + 10) >= (barStatus.x - barStatus.width / 2) && (ballStatus.x - 10) <= (barStatus
+                    .x - barStatus.width / 2 + barStatus.width) &&
+                (ballStatus.y + 10) >= barStatus.y && (ballStatus.y - 10) <= (barStatus.y + barStatus.height)) {
+                ballStatus.dy = -ballStatus.dy;
+            }
+            for (ele of cloneList) {
+                if (ele.display == "Y" && (ballStatus.x + 10) >= ele.x && (ballStatus.x - 10) <= (ele.x + ele.width) &&
+                    (ballStatus.y + 10) >= ele.y && (ballStatus.y - 10) <= (ele.y + ele.height)) {
+                    ele.display = "N";
+                    ballStatus.dy = -ballStatus.dy;
+                }
             }
             ballStatus.x = ballStatus.x + ballStatus.dx;
             ballStatus.y = ballStatus.y + ballStatus.dy;
         }
 
-        function drawClone(ctx, data) {
+        function drawClone(ctx, data) { //畫磚塊
             ctx.beginPath();
-            ctx.rect(data.x, data.y, 90, 20); //在寬,高 畫一個50*50
+            ctx.rect(data.x, data.y, data.width, data.height); //在寬,高 畫一個50*50
             ctx.fillStyle = "#FFFFFF"; //strokeStyle 空心
             ctx.fill(); //stroke() 空心
             ctx.closePath();
@@ -159,6 +186,18 @@
         function restart() {
             playing = "N";
             prepareScene()
+            cloneList = [];
+            for (var i = 0; i < 10; i++) { //建立磚塊
+                var hasama = 10; //磚塊間隔
+                var tmp = {
+                    x: (i % 5) * (cloneWidth + hasama) + (width - 5 * (cloneWidth + hasama) + hasama) / 2,
+                    y: Math.floor(i / 5) * (cloneHeight + 10) + startCloneMoveHeight,
+                    width: cloneWidth,
+                    height: cloneHeight,
+                    display: "Y"
+                }
+                cloneList.push(tmp);
+            }
             ballStatus = { //設定值回歸初始值
                 x: 360,
                 y: 390,
