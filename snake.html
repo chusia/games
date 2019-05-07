@@ -1,0 +1,209 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Breakout Clone Game</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        canvas {
+            background: rgb(0, 0, 0);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            /*margin-top: 100px;*/
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var playing = "N";
+        var snake;
+        var gameOption;
+        var feed = {
+            x : 1,
+            y : 1,
+            eated : "Y"
+        };
+        var vertical = -1;
+        var horizon = 0;
+
+        function gameOptions() {
+            this.height = 720;
+            this.width = 480;
+            this.speed = 50; //螢幕更新率
+            this.cellLength = 6;
+        }
+
+        function snakeOptions() {
+            this.body = [{
+                x: 48,
+                y: 69
+            }, {
+                x: 48,
+                y: 70
+            }, {
+                x: 48,
+                y: 71
+            }, {
+                x: 48,
+                y: 72
+            }, {
+                x: 48,
+                y: 73
+            }, {
+                x: 48,
+                y: 74
+            }]
+        }
+
+        $(document).ready(function () {
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+            gameOption = new gameOptions();
+            snake = new snakeOptions();
+            prepareScene();
+            setInterval(function () {
+                if (playing == "Y") {
+                    frame(ctx)
+                }
+            }, gameOption.speed);
+            var $inp = $('body');
+            $inp.bind('keydown', function (e) {
+                var key = e.which;
+                if (key == 38 || key == 87) {//上
+                    vertical  = -1;
+                    horizon = 0;
+                } else if (key == 40 || key == 83) {//下
+                    vertical  = 1;
+                    horizon = 0;
+                } else if (key == 37 || key == 65) {//左
+                    vertical  = 0;
+                    horizon = -1;
+                } else if (key == 39 || key == 68) {//右
+                    vertical  = 0;
+                    horizon = 1;
+                }
+            });
+        })
+
+        function frame(ctx) { //一幀
+            ctx.clearRect(0, 0, gameOption.width, gameOption.height); //清空
+            drawSnake(ctx);
+            drawFeed(ctx);
+            moveSnake();
+            moveFeed();
+            ifGameEnd();
+        }
+
+        function drawSnake(ctx) { //畫蛇
+            for (var ele of snake.body) {
+                ctx.beginPath();
+                ctx.rect(ele.x * gameOption.cellLength, ele.y * gameOption.cellLength, gameOption.cellLength, gameOption.cellLength); //在寬,高 畫一個50*50
+                ctx.fillStyle = "#FFFFFF"; //fillStyle實心  strokeStyle 空心
+                ctx.fill(); //fill()實心  stroke() 空心
+                ctx.closePath();
+            }
+        }
+
+        function drawFeed(ctx) { //畫飼料
+            ctx.beginPath();
+            ctx.rect(feed.x * gameOption.cellLength, feed.y * gameOption.cellLength, gameOption.cellLength, gameOption.cellLength); //在寬,高 畫一個50*50
+            ctx.fillStyle = "skyblue";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function moveSnake() { //移動蛇
+            if (snake.body[0].x == feed.x && snake.body[0].y == feed.y) {
+                feed.eated = 'Y';
+            } else {
+                snake.body.pop();
+            }
+            snake.body.unshift({
+                x: snake.body[0].x + horizon,
+                y: snake.body[0].y + vertical
+            })
+        }
+
+        function moveFeed() { //移動蛇
+            if (feed.eated == 'Y') {
+                do {
+                    feed.x = Math.floor(Math.random() * gameOption.width / gameOption.cellLength) + 1;
+                    feed.y = Math.floor(Math.random() * gameOption.height / gameOption.cellLength) + 1;
+                } while (snake.body.filter(word => word.x == feed.x && word.y == feed.y).length != 0)
+                feed.eated = 'N'
+            }
+        }
+
+        function changeStatus() {
+            if (playing == "N") {
+                playing = "Y";
+            } else {
+                playing = "N";
+            }
+        }
+
+        function prepareScene() { //起始標題畫面
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, gameOption.width, gameOption.height); //清空
+            ctx.font = 'bold 36px Verdana';
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Snake Game", 154, 235); //寫標題
+        }
+
+        function ifGameEnd() {
+            for (var ele in snake.body) {
+                console.log(snake.body[ele])
+                if (ele != "0" && snake.body[ele] == snake.body[0]) {
+                    gameOver();
+                    break;
+                }
+            }
+            //youWin();
+        }
+
+        function gameOver() { //輸了
+            playing = "N"
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, gameOption.width, gameOption.height); //清空
+            ctx.font = 'bold 36px Verdana';
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Game Over", 250, 235); //寫標題
+        }
+
+        function youWin() { //起始標題畫面
+            playing = "N"
+            let canvas = document.getElementById("myCanvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, gameOption.width, gameOption.height); //清空
+            ctx.font = 'bold 36px Verdana';
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("You Win!", 260, 235); //寫標題
+        }
+
+        function restart() {
+            playing = "N";
+            prepareScene()
+            gameOption = new gameOptions();
+            snake = new snakeOptions();
+        }
+    </script>
+    <div style="text-align: center">
+        <br>
+        <label style="font-size: 36px;">Snake Game</label><br>
+        <canvas id="myCanvas" width="480" height="720"></canvas><br>
+        <button onclick="changeStatus()" class="btn btn-primary">Start/Stop</button><br><br>
+        <button onclick="restart()" class="btn btn-primary">Restart</button>
+    </div>
+</body>
+
+</html>
