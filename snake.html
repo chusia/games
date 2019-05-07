@@ -79,17 +79,25 @@
             $inp.bind('keydown', function (e) {
                 var key = e.which;
                 if (key == 38 || key == 87) {//上
-                    gameOption.vertical  = -1;
+                    if (gameOption.vertical != 1) {
+                        gameOption.vertical  = -1;
+                    }
                     gameOption.horizon = 0;
                 } else if (key == 40 || key == 83) {//下
-                    gameOption.vertical  = 1;
+                    if (gameOption.vertical != -1) {
+                        gameOption.vertical  = 1;
+                    }
                     gameOption.horizon = 0;
                 } else if (key == 37 || key == 65) {//左
                     gameOption.vertical  = 0;
-                    gameOption.horizon = -1;
+                    if (gameOption.horizon != 1) {
+                        gameOption.horizon  = -1;
+                    }
                 } else if (key == 39 || key == 68) {//右
                     gameOption.vertical  = 0;
-                    gameOption.horizon = 1;
+                    if (gameOption.horizon != -1) {
+                        gameOption.horizon = 1;
+                    }
                 }
             });
         })
@@ -157,7 +165,7 @@
             ctx.clearRect(0, 0, gameOption.width, gameOption.height); //清空
             ctx.font = 'bold 36px Verdana';
             ctx.fillStyle = "#FFFFFF";
-            ctx.fillText(gameOption.title, 154, 235); //寫標題
+            ctx.fillText(gameOption.title, gameOption.width/2 - $('#title').width()/2, gameOption.height/2 - $('#title').height()/2); //寫標題
         }
 
         function ifGameEnd() {
@@ -167,8 +175,8 @@
                     break;
                 }
             }
-            if (snake.body[0].x * gameOption.cellLength > gameOption.width ||
-             snake.body[0].y * gameOption.cellLength > gameOption.height ||
+            if (snake.body[0].x * gameOption.cellLength >= gameOption.width ||
+             snake.body[0].y * gameOption.cellLength >= gameOption.height ||
               snake.body[0].x * gameOption.cellLength < 0 ||
                snake.body[0].y * gameOption.cellLength < 0) {
                     gameOver();
@@ -183,7 +191,7 @@
             ctx.clearRect(0, 0, gameOption.width, gameOption.height); //清空
             ctx.font = 'bold 36px Verdana';
             ctx.fillStyle = "#FFFFFF";
-            ctx.fillText("Game Over", 250, 235); //寫標題
+            ctx.fillText("Game Over", gameOption.width/2 - $('#GG').width()/2, gameOption.height/2 - $('#GG').height()/2); //寫標題
         }
 
         function youWin() { //獲勝
@@ -193,7 +201,7 @@
             ctx.clearRect(0, 0, gameOption.width, gameOption.height); //清空
             ctx.font = 'bold 36px Verdana';
             ctx.fillStyle = "#FFFFFF";
-            ctx.fillText("You Win!", 260, 235); //寫標題
+            ctx.fillText("You Win!", gameOption.width/2 - $('#win').width()/2, gameOption.height/2 - $('#win').height()/2); //寫標題
         }
 
         function restart() {
@@ -205,7 +213,9 @@
     </script>
     <div style="text-align: center">
         <br>
-        <label style="font-size: 36px;">Snake Game</label><br>
+        <label style="font-size: 36px;font-weight: bold;font-family: Verdana;" id = "title">Snake Game</label><br>
+        <label style="font-size: 36px;font-weight: bold;font-family: Verdana;display: none" id = "GG">Game Over</label>
+        <label style="font-size: 36px;font-weight: bold;font-family: Verdana;display: none" id = "win">You Win!</label>
         <canvas id="myCanvas" width="480" height="720"></canvas><br>
         <button onclick="changeStatus()" class="btn btn-primary">Start/Stop</button><br><br>
         <button onclick="restart()" class="btn btn-primary">Restart</button>
